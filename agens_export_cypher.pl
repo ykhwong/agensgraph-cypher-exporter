@@ -6,6 +6,23 @@ my $flag;
 my $row_show_cnt=0;
 my $changed=0;
 my $compt="agens";
+my $idx_uniq_st;
+my $no_index=0;
+
+sub _get_idx {
+	my $ls = shift;
+	if ($ls !~ /^.+\s*\|\s*(CREATE +PROPERTY +INDEX )/i) {
+		return;
+	}
+	$ls =~ s/^.+\s*\|\s*(CREATE +PROPERTY +INDEX )/$1/i;
+	$ls =~ s/\)(\s*)$/);$1/;
+	if ($compt eq "agens") {
+		$idx_uniq_st .= $ls;
+		return;
+	}
+	$ls =~ s/CREATE +PROPERTY +INDEX +(.+) +ON +(\S+) +USING +btree *\((.+)\)/CREATE INDEX ON :$2($3)/i;
+	$idx_uniq_st .= $ls;
+}
 
 sub proc {
 	my $ls = shift;
@@ -66,6 +83,10 @@ sub main {
 			$compt=$1;
 			next;
 		}
+		if ($arg =~ /^--no-index$/) {
+			$no_index=1;
+			next;
+		}
 		if ($arg =~ /^(--)(dbname|host|port|username)(=\S+)$/) {
 			$opt.=" " . $1 . $2 . $3;
 			next;
@@ -75,7 +96,7 @@ sub main {
 			next;
 		}
 		if ($arg =~ /^--/ || $arg =~ /^--(h|help)$/) {
-			printf("USAGE: perl $0 [--graph=GRAPH_NAME] [--compt={agens|neo4j}] [--help]\n");
+			printf("USAGE: perl $0 [--graph=GRAPH_NAME] [--compt={agens|neo4j}] [--no-index] [--help]\n");
 			printf("   Basic parameters:\n");
 			printf("      [--compt=agens]   : Output for AgensGraph (default)\n");
 			printf("      [--compt=neo4j]   : Output for Neo4j\n");
@@ -99,8 +120,6 @@ sub main {
 		exit 1;
 	}
 
-	$st = "SET GRAPH_PATH=$graph_name; MATCH (n) RETURN n; MATCH ()-[r]->() RETURN r;";
-
 	if ($^O eq 'MSWin32' || $^O eq 'cygwin' || $^O eq 'dos') {
 		`agens --help >nul 2>&1`;
 	} else {
@@ -116,17 +135,32 @@ sub main {
 	}
 	$pid = open2 $out, $in, "agens -q $opt";
 	die "$0: open2: $!" unless defined $pid;
+
+	$st = "SET GRAPH_PATH=$graph_name; \\dGi $graph_name.*;";
+	print $in $st . "\n";
+	while (<$out>) {
+		my $ls = $_;
+		last if ($ls =~ /No matching property|^\(\d+ +rows\)/i);
+		_get_idx($ls);
+	}
+
+	$st = "SET GRAPH_PATH=$graph_name; MATCH (n) RETURN n; MATCH ()-[r]->() RETURN r;";
 	print $in $st . "\n";
 	while (<$out>) {
 		last if ($row_show_cnt eq 2);
 		print proc($_);
 	}
+
 	if ($changed eq 0) {
 		if ($compt eq "agens") {
 			printf("-- Nothing to do\n");
 		} else {
 			printf("// Nothing to do\n");
 		}
+	}
+
+	unless ($no_index) {
+		printf("%s", $idx_uniq_st);
 	}
 }
 
