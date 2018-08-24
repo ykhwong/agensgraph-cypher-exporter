@@ -57,27 +57,27 @@ The compatibility mode can be also changed to Neo4j.
 
 The result would be something like this:
 ```
-CREATE (:person {"name": "Max"});
-CREATE (:person {"name": "Bill"});
-CREATE (:person {"name": "Jane"});
-CREATE (:person {"name": "Abby"});
-CREATE (:person {"name": "Hank"});
-CREATE (:person {"name": "Sophie"});
-CREATE (:account {"name": "Cayman Account", "number": 863});
-CREATE (:account {"name": "Chase Account", "number": 1523});
-CREATE (:account {"name": "BofA Account", "number": 4634});
-CREATE (:ssn {"number": 123456789});
-CREATE (:ssn {"number": 523252364});
-CREATE (:ssn {"number": 993632634});
-MATCH (n1:person {"name": "Jane"}), (n2:account {"name": "Chase Account", "number": 1523}) CREATE (n1)-[:has_account]->(n2);
-MATCH (n1:person {"name": "Abby"}), (n2:account {"name": "Cayman Account", "number": 863}) CREATE (n1)-[:has_account]->(n2);
-MATCH (n1:person {"name": "Hank"}), (n2:account {"name": "Cayman Account", "number": 863}) CREATE (n1)-[:has_account]->(n2);
-MATCH (n1:person {"name": "Bill"}), (n2:account {"name": "BofA Account", "number": 4634}) CREATE (n1)-[:has_account]->(n2);
-MATCH (n1:person {"name": "Jane"}), (n2:ssn {"number": 123456789}) CREATE (n1)-[:has_ssn]->(n2);
-MATCH (n1:person {"name": "Max"}), (n2:ssn {"number": 993632634}) CREATE (n1)-[:has_ssn]->(n2);
-MATCH (n1:person {"name": "Abby"}), (n2:ssn {"number": 993632634}) CREATE (n1)-[:has_ssn]->(n2);
-MATCH (n1:person {"name": "Sophie"}), (n2:ssn {"number": 993632634}) CREATE (n1)-[:has_ssn]->(n2);
-MATCH (n1:person {"name": "Bill"}), (n2:ssn {"number": 523252364}) CREATE (n1)-[:has_ssn]->(n2);
+CREATE (:person {name: "Max"});
+CREATE (:person {name: "Bill"});
+CREATE (:person {name: "Jane"});
+CREATE (:person {name: "Abby"});
+CREATE (:person {name: "Hank"});
+CREATE (:person {name: "Sophie"});
+CREATE (:account {name: "Cayman Account", "number": 863});
+CREATE (:account {name: "Chase Account", "number": 1523});
+CREATE (:account {name: "BofA Account", "number": 4634});
+CREATE (:ssn {number: 123456789});
+CREATE (:ssn {number: 523252364});
+CREATE (:ssn {number: 993632634});
+MATCH (n1:person {name: "Jane"}), (n2:account {name: "Chase Account", "number": 1523}) CREATE (n1)-[:has_account]->(n2);
+MATCH (n1:person {name: "Abby"}), (n2:account {name: "Cayman Account", "number": 863}) CREATE (n1)-[:has_account]->(n2);
+MATCH (n1:person {name: "Hank"}), (n2:account {name: "Cayman Account", "number": 863}) CREATE (n1)-[:has_account]->(n2);
+MATCH (n1:person {name: "Bill"}), (n2:account {name: "BofA Account", "number": 4634}) CREATE (n1)-[:has_account]->(n2);
+MATCH (n1:person {name: "Jane"}), (n2:ssn {number: 123456789}) CREATE (n1)-[:has_ssn]->(n2);
+MATCH (n1:person {name: "Max"}), (n2:ssn {number: 993632634}) CREATE (n1)-[:has_ssn]->(n2);
+MATCH (n1:person {name: "Abby"}), (n2:ssn {number: 993632634}) CREATE (n1)-[:has_ssn]->(n2);
+MATCH (n1:person {name: "Sophie"}), (n2:ssn {number: 993632634}) CREATE (n1)-[:has_ssn]->(n2);
+MATCH (n1:person {name: "Bill"}), (n2:ssn {number: 523252364}) CREATE (n1)-[:has_ssn]->(n2);
 ```
 
 ## TECHNIAL DETAILS
