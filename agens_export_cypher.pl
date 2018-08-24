@@ -91,7 +91,7 @@ sub main {
 	}
 
 	if ($compt !~ /^(agens|neo4j)$/) {
-		printf("Invalid parameter: --compt=$1\n");
+		printf("Invalid parameter: --compt=$compt\n");
 		exit 1;
 	}
 	if (!$graph_name) {
