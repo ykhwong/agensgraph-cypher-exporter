@@ -82,12 +82,12 @@ MATCH (n1:person {name: "Bill"}), (n2:ssn {number: 523252364}) CREATE (n1)-[:has
 
 ## TECHNIAL DETAILS
 * '--graph=GRAPH_NAME' option must be specified because the graph repository needs to be recognized.
-* Indexes will be preserved, but unique constraints will not be exported.
+* Both indexes and unique constraints will be preserved.
 * VLABEL without vertexes and ELABEL without edges will not be exported. Single and multiple inheritance will not be handled.
 
 ### USAGE
 ```
-USAGE: perl agens_export_cypher.pl [--graph=GRAPH_NAME] [--compt={agens|neo4j}] [--no-index] [--help]
+USAGE: perl agens_export_cypher.pl [--graph=GRAPH_NAME] [--compt={agens|neo4j}] [--no-index] [--no-unique-constraint] [--help]
    Basic parameters:
       [--compt=agens]   : Output for AgensGraph (default)
       [--compt=neo4j]   : Output for Neo4j
