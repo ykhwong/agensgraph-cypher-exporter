@@ -8,9 +8,12 @@ my $changed=0;
 my $compt="agens";
 my $idx_uniq_st;
 my $no_index=0;
+my $no_unique_constraint=0;
+my $last_vlabel;
 
 sub _get_idx {
 	my $ls = shift;
+	return if ($no_index);
 	if ($ls !~ /^.+\s*\|\s*(CREATE +PROPERTY +INDEX )/i) {
 		return;
 	}
@@ -22,6 +25,26 @@ sub _get_idx {
 	}
 	$ls =~ s/CREATE +PROPERTY +INDEX +(.+) +ON +(\S+) +USING +btree *\((.+)\)/CREATE INDEX ON :$2($3)/i;
 	$idx_uniq_st .= $ls;
+}
+
+sub _get_unique_constraints {
+	my $ls = shift;
+	return if ($no_unique_constraint);
+	if ($ls =~ /Vertex label "(\S+)"\s*$/i) {
+		$last_vlabel = $1;
+		$last_vlabel =~ s/(.+)\.(.+)/$2/;
+		return;
+	}
+	if ($ls =~ / UNIQUE +USING +btree +\((\S+)\)\s*$/i) {
+		my $key = $1;
+		$idx_uniq_st .= "CREATE CONSTRAINT ON ";
+		if ($compt eq "agens") {
+			$idx_uniq_st .= "$last_vlabel ASSERT $key IS UNIQUE;\n";
+		} else {
+			$idx_uniq_st .= "(u1:$last_vlabel) ASSERT u1.$key IS UNIQUE;\n";
+		}
+	}
+	return;
 }
 
 sub proc {
@@ -91,6 +114,10 @@ sub main {
 			$no_index=1;
 			next;
 		}
+		if ($arg =~ /^--no-unique-constraint$/) {
+			$no_unique_constraint=1;
+			next;
+		}
 		if ($arg =~ /^(--)(dbname|host|port|username)(=\S+)$/) {
 			$opt.=" " . $1 . $2 . $3;
 			next;
@@ -100,7 +127,7 @@ sub main {
 			next;
 		}
 		if ($arg =~ /^--/ || $arg =~ /^--(h|help)$/) {
-			printf("USAGE: perl $0 [--graph=GRAPH_NAME] [--compt={agens|neo4j}] [--no-index] [--help]\n");
+			printf("USAGE: perl $0 [--graph=GRAPH_NAME] [--compt={agens|neo4j}] [--no-index] [--no-unique-constraint] [--help]\n");
 			printf("   Basic parameters:\n");
 			printf("      [--compt=agens]   : Output for AgensGraph (default)\n");
 			printf("      [--compt=neo4j]   : Output for Neo4j\n");
@@ -140,12 +167,20 @@ sub main {
 	$pid = open2 $out, $in, "agens -q $opt";
 	die "$0: open2: $!" unless defined $pid;
 
-	$st = "SET GRAPH_PATH=$graph_name; \\dGi $graph_name.*;";
+	$st = "\\dGi $graph_name.*;";
 	print $in $st . "\n";
 	while (<$out>) {
 		my $ls = $_;
 		last if ($ls =~ /No matching property|^\(\d+ +rows\)/i);
 		_get_idx($ls);
+	}
+
+	$st = "\\dGv $graph_name.*; \\dGe $graph_name.*; \\echo THE_END;";
+	print $in $st . "\n";
+	while (<$out>) {
+		my $ls = $_;
+		last if ($ls =~ /THE_END/i);
+		_get_unique_constraints($ls);
 	}
 
 	$st = "SET GRAPH_PATH=$graph_name; MATCH (n) RETURN n; MATCH ()-[r]->() RETURN r;";
@@ -163,9 +198,7 @@ sub main {
 		}
 	}
 
-	unless ($no_index) {
-		printf("%s", $idx_uniq_st);
-	}
+	printf("%s", $idx_uniq_st);
 }
 
 main();
