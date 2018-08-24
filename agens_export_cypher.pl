@@ -94,7 +94,7 @@ sub main {
 		printf("Invalid parameter: --compt=$1\n");
 		exit 1;
 	}
-	if ($compt eq "agens" && !$graph_name) {
+	if (!$graph_name) {
 		printf("Please specify the --graph= parameter for the graph repository.\n");
 		exit 1;
 	}
