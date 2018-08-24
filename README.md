@@ -102,4 +102,4 @@ USAGE: perl agens_export_cypher.pl [--graph=GRAPH_NAME] [--compt={agens|neo4j}] 
 
 ### SEE ALSO
 * https://bitnine.net/documentation/
-* https://github.com/ykhwong/agensgraph_cypher_exporter
+* https://github.com/ykhwong/neo4j_to_agensgraph
