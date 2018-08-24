@@ -81,7 +81,7 @@ MATCH (n1:person {"name": "Bill"}), (n2:ssn {"number": 523252364}) CREATE (n1)-[
 ```
 
 ## TECHNIAL DETAILS
-* Unless the --compt=neo4j is set, '--graph=GRAPH_NAME' option cannot be omitted because every graph-related elements including vertices and edges must be stored in the repository.
+* '--graph=GRAPH_NAME' option must be specified because the graph repository needs to be recognized.
 * Both indexes and unique constraints will not be exported.
 * VLABEL without vertexes and ELABEL without edges will not be exported. Single and multiple inheritance will not be handled.
 
