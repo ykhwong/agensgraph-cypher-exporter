@@ -9,7 +9,7 @@ my $compt="agens";
 my $idx_uniq_st;
 my $no_index=0;
 my $no_unique_constraint=0;
-my $last_vlabel;
+my $last_label;
 
 sub _get_idx {
 	my $ls = shift;
@@ -30,18 +30,18 @@ sub _get_idx {
 sub _get_unique_constraints {
 	my $ls = shift;
 	return if ($no_unique_constraint);
-	if ($ls =~ /Vertex label "(\S+)"\s*$/i) {
-		$last_vlabel = $1;
-		$last_vlabel =~ s/(.+)\.(.+)/$2/;
+	if ($ls =~ /(Vertex|Edge) +label "(\S+)"\s*$/i) {
+		$last_label = $1;
+		$last_label =~ s/(.+)\.(.+)/$2/;
 		return;
 	}
 	if ($ls =~ / UNIQUE +USING +btree +\((\S+)\)\s*$/i) {
 		my $key = $1;
 		$idx_uniq_st .= "CREATE CONSTRAINT ON ";
 		if ($compt eq "agens") {
-			$idx_uniq_st .= "$last_vlabel ASSERT $key IS UNIQUE;\n";
+			$idx_uniq_st .= "$last_label ASSERT $key IS UNIQUE;\n";
 		} else {
-			$idx_uniq_st .= "(u1:$last_vlabel) ASSERT u1.$key IS UNIQUE;\n";
+			$idx_uniq_st .= "(u1:$last_label) ASSERT u1.$key IS UNIQUE;\n";
 		}
 	}
 	return;
