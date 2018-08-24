@@ -99,3 +99,7 @@ USAGE: perl agens_export_cypher.pl [--graph=GRAPH_NAME] [--compt={agens|neo4j}] 
       [--no-password]   : No password
       [--password]      : Ask password (should happen automatically)
 ```
+
+### SEE ALSO
+* https://bitnine.net/documentation/
+* https://github.com/ykhwong/agensgraph_cypher_exporter
