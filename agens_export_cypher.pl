@@ -29,7 +29,7 @@ sub _get_idx {
 sub _get_unique_constraints {
 	my $ls = shift;
 	if ($ls =~ /(Vertex|Edge) +label "(\S+)"\s*$/i) {
-		$last_label = $1;
+		$last_label = $2;
 		$last_label =~ s/(.+)\.(.+)/$2/;
 		return;
 	}
