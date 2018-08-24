@@ -3,7 +3,6 @@ use IPC::Open2;
 my ($pid, $out, $in);
 my %node;
 my $flag;
-my $row_show_cnt=0;
 my $changed=0;
 my $compt="agens";
 my $idx_uniq_st;
@@ -48,10 +47,7 @@ sub _get_unique_constraints {
 sub proc {
 	my $ls = shift;
 	return "" if ($ls =~ /^-+\s*$/);
-	if ($ls =~ /^\((\d+) rows*\)/) {
-		$row_show_cnt++;
-		return "";
-	}
+	return "" if ($ls =~ /^\((\d+) rows*\)/);
 
 	if ($compt eq "agens") {
 		$ls =~ s/'/''/g;
@@ -59,7 +55,6 @@ sub proc {
 		$ls =~ s/([^\\])(`|")/$1'/g;
 		$ls =~ s/\\"/"/g;
 	} else {
-		#CREATE (:person {"name": "Max"});
 		$ls =~ s/(\s*\{)"(\S+)"(:\s*)/$1$2$3/g;
 	}
 	if ($ls =~ /^\s*(n|r)\s*$/) {
@@ -180,16 +175,17 @@ sub main {
 		print $in $st . "\n";
 		while (<$out>) {
 			my $ls = $_;
-			last if ($ls =~ /THE_END/i);
+			last if ($ls =~ /^THE_END/i);
 			_get_unique_constraints($ls);
 		}
 	}
 
-	$st = "SET GRAPH_PATH=$graph_name; MATCH (n) RETURN n; MATCH ()-[r]->() RETURN r;";
+	$st = "SET GRAPH_PATH=$graph_name; MATCH (n) RETURN n; MATCH ()-[r]->() RETURN r; \\echo THE_END;";
 	print $in $st . "\n";
 	while (<$out>) {
-		last if ($row_show_cnt eq 2);
-		print proc($_);
+		my $ls = $_;
+		last if ($ls =~ /^THE_END/i);
+		print proc($ls);
 	}
 
 	if ($changed eq 0) {
