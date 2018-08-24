@@ -13,7 +13,6 @@ my $last_label;
 
 sub _get_idx {
 	my $ls = shift;
-	return if ($no_index);
 	if ($ls !~ /^.+\s*\|\s*(CREATE +PROPERTY +INDEX )/i) {
 		return;
 	}
@@ -29,7 +28,6 @@ sub _get_idx {
 
 sub _get_unique_constraints {
 	my $ls = shift;
-	return if ($no_unique_constraint);
 	if ($ls =~ /(Vertex|Edge) +label "(\S+)"\s*$/i) {
 		$last_label = $1;
 		$last_label =~ s/(.+)\.(.+)/$2/;
@@ -167,20 +165,24 @@ sub main {
 	$pid = open2 $out, $in, "agens -q $opt";
 	die "$0: open2: $!" unless defined $pid;
 
-	$st = "\\dGi $graph_name.*;";
-	print $in $st . "\n";
-	while (<$out>) {
-		my $ls = $_;
-		last if ($ls =~ /No matching property|^\(\d+ +rows\)/i);
-		_get_idx($ls);
+	unless ($no_index) {
+		$st = "\\dGi $graph_name.*;";
+		print $in $st . "\n";
+		while (<$out>) {
+			my $ls = $_;
+			last if ($ls =~ /No matching property|^\(\d+ +rows\)/i);
+			_get_idx($ls);
+		}
 	}
 
-	$st = "\\dGv $graph_name.*; \\dGe $graph_name.*; \\echo THE_END;";
-	print $in $st . "\n";
-	while (<$out>) {
-		my $ls = $_;
-		last if ($ls =~ /THE_END/i);
-		_get_unique_constraints($ls);
+	unless ($no_unique_constraint) {
+		$st = "\\dGv $graph_name.*; \\dGe $graph_name.*; \\echo THE_END;";
+		print $in $st . "\n";
+		while (<$out>) {
+			my $ls = $_;
+			last if ($ls =~ /THE_END/i);
+			_get_unique_constraints($ls);
+		}
 	}
 
 	$st = "SET GRAPH_PATH=$graph_name; MATCH (n) RETURN n; MATCH ()-[r]->() RETURN r;";
