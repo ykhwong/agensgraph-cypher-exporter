@@ -26,16 +26,20 @@ sub _get_idx {
 
 sub proc {
 	my $ls = shift;
+	return "" if ($ls =~ /^-+\s*$/);
+	if ($ls =~ /^\((\d+) rows*\)/) {
+		$row_show_cnt++;
+		return "";
+	}
+
 	if ($compt eq "agens") {
 		$ls =~ s/'/''/g;
 		$ls =~ s/\\"([\},])/\\\\'$1/g;
 		$ls =~ s/([^\\])(`|")/$1'/g;
 		$ls =~ s/\\"/"/g;
-	}
-	return "" if ($ls =~ /^-+\s*$/);
-	if ($ls =~ /^\((\d+) rows*\)/) {
-		$row_show_cnt++;
-		return "";
+	} else {
+		#CREATE (:person {"name": "Max"});
+		$ls =~ s/(\s*\{)"(\S+)"(:\s*)/$1$2$3/g;
 	}
 	if ($ls =~ /^\s*(n|r)\s*$/) {
 		$flag=$1;
