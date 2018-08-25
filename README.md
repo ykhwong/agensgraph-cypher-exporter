@@ -82,8 +82,9 @@ MATCH (n1:person {name: "Bill"}), (n2:ssn {number: 523252364}) CREATE (n1)-[:has
 
 ## TECHNIAL DETAILS
 * '--graph=GRAPH_NAME' option must be specified because the graph repository needs to be recognized.
+* VLABEL without vertexes and ELABEL without edges will be also exported if the compatibility mode is set to agens.
+  - However, single and multiple inheritance will not be handled.
 * Both indexes and unique constraints will be preserved.
-* VLABEL without vertexes and ELABEL without edges will not be exported. Single and multiple inheritance will not be handled.
 
 ### USAGE
 ```
