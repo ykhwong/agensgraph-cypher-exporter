@@ -5,6 +5,7 @@ my %node;
 my $flag;
 my $changed=0;
 my $compt="agens";
+my $label_st;
 my $idx_uniq_st;
 my $no_index=0;
 my $no_unique_constraint=0;
@@ -23,6 +24,16 @@ sub _get_idx {
 	}
 	$ls =~ s/CREATE +PROPERTY +INDEX +(.+) +ON +(\S+) +USING +btree *\((.+)\)/CREATE INDEX ON :$2($3)/i;
 	$idx_uniq_st .= $ls;
+}
+
+sub _get_labels {
+	my ($ls, $graph_name) = @_;
+	if ($ls =~ /^\s*$graph_name\s+\|\s+(\S+)\s+\|\s+(vertex|edge)/i) {
+		my $label = $1;
+		my $type = $2;
+		$type = $type eq "vertex"?"VLABEL":"ELABEL";
+		$label_st .= "CREATE $type $label;\n";
+	}
 }
 
 sub _get_unique_constraints {
@@ -170,15 +181,15 @@ sub main {
 		}
 	}
 
-	unless ($no_unique_constraint) {
-		$st = "\\dGv $graph_name.*; \\dGe $graph_name.*; \\echo THE_END;";
-		print $in $st . "\n";
-		while (<$out>) {
-			my $ls = $_;
-			last if ($ls =~ /^THE_END/i);
-			_get_unique_constraints($ls);
-		}
+	$st = "\\dGv $graph_name.*; \\dGe $graph_name.*; \\echo THE_END;";
+	print $in $st . "\n";
+	while (<$out>) {
+		my $ls = $_;
+		last if ($ls =~ /^THE_END/i);
+		_get_unique_constraints($ls) unless ($no_unique_constraint);
+		_get_labels($ls, $graph_name) if ($compt eq "agens");
 	}
+	print $label_st;
 
 	$st = "SET GRAPH_PATH=$graph_name; MATCH (n) RETURN n; MATCH ()-[r]->() RETURN r; \\echo THE_END;";
 	print $in $st . "\n";
