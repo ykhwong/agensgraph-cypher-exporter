@@ -14,11 +14,16 @@ Exports the Cypher statemens directly from AgensGraph. This can be useful for a 
   $ perl agens_export_cypher.pl --graph=TEMP
 ```
 
-2. You’ll see the Cypher statements from AgensGraph.
+2. Cypher statements will be exported from AgensGraph as below.
 ```
 DROP GRAPH IF EXISTS TEMP CASCADE;
 CREATE GRAPH TEMP;
 SET GRAPH_PATH=TEMP;
+CREATE VLABEL account;
+CREATE VLABEL person;
+CREATE VLABEL ssn;
+CREATE ELABEL has_account;
+CREATE ELABEL has_ssn;
 CREATE (:person {'name': 'Max'});
 CREATE (:person {'name': 'Bill'});
 CREATE (:person {'name': 'Jane'});
