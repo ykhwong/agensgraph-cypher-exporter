@@ -31,6 +31,7 @@ sub _get_labels {
 	if ($ls =~ /^\s*$graph_name\s+\|\s+(\S+)\s+\|\s+(vertex|edge)/i) {
 		my $label = $1;
 		my $type = $2;
+		return if ($label =~ /^(ag_vertex|ag_edge)$/i);
 		$type = $type eq "vertex"?"VLABEL":"ELABEL";
 		$label_st .= "CREATE $type $label;\n";
 	}
