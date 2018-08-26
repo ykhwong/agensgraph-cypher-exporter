@@ -91,8 +91,9 @@ MATCH (n1:person {name: "Bill"}), (n2:ssn {number: 523252364}) CREATE (n1)-[:has
 
 | Items | compt=agens | compt=neo4j | Note |
 | ------------- | ------------- | ------------- | ------------- |
-| Vertex/Edge | Supported | Supported |  |
-| Inheritance | Supported | Unsupported | Neo4j does not support inheritance |
+| Vertexes | Supported | Supported |  |
+| Edges | Supported | Supported |  |
+| Label inheritance | Supported | Unsupported | Neo4j does not support inheritance |
 | Indexes | Supported | Supported | |
 | Unique constraints | Supported | Supported | |
 | VLABEL without vertexes | Supported | Unsupported | Neo4j does not have "CREATE/DROP VLABEL" command |
