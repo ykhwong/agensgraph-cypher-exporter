@@ -9,7 +9,9 @@ my $label_st;
 my $idx_uniq_st;
 my $no_index=0;
 my $no_unique_constraint=0;
-my $last_label;
+my $last_uc_label;
+my ($last_ve_label, $last_ve_type);
+my (%vlabel, %elabel, $inherits);
 
 sub _get_idx {
 	my $ls = shift;
@@ -28,29 +30,85 @@ sub _get_idx {
 
 sub _get_labels {
 	my ($ls, $graph_name) = @_;
-	if ($ls =~ /^\s*$graph_name\s+\|\s+(\S+)\s+\|\s+(vertex|edge)/i) {
-		my $label = $1;
-		my $type = $2;
+	if ($ls =~ /(Vertex|Edge) +label +"(\S+)"\s*$/i) {
+		my $type = $1;
+		my $label = $2;
+		$label =~ s/(.+)\.(.+)/$2/;
 		return if ($label =~ /^(ag_vertex|ag_edge)$/i);
-		$type = $type eq "vertex"?"VLABEL":"ELABEL";
-		$label_st .= "CREATE $type $label;\n";
+		$last_ve_label = $label;
+		$last_ve_type = $type;
+		if ($type =~ /vertex/i) {
+			$vlabel{$label} = "";
+		} else {
+			$elabel{$label} = "";
+		}
+		return;
 	}
+	if ($inherits) {
+		if ($ls =~ /^\s*(.+)\s*$/) {
+			my $inherit = $1;
+			$inherit =~ s/(.+)\.(.+)/$2/;
+			if ($inherit =~ /,$/) {
+				$inherit =~ s/,$//;
+				$inherits .= ", $inherit";
+			} else {
+				$inherits .= ", $inherit";
+				$vlabel{$last_ve_label} = $inherits if ($last_ve_type =~ /vertex/i);
+				$elabel{$last_ve_label} = $inherits if ($last_ve_type =~ /edge/i);
+				undef $inherits;
+			}
+		}
+	}
+	if ($ls =~ /^Inherits: +(.+)\s*$/i) {
+		my $inherit = $1;
+		$inherit =~ s/(.+)\.(.+)/$2/;
+		undef $inherits;
+		return if ($inherit =~ /^(ag_vertex|ag_edge)$/i);
+		if ($inherit =~ /,$/) {
+			$inherit =~ s/,$//;
+			$inherits = $inherit;
+		} else {
+			$vlabel{$last_ve_label} = $inherit if ($last_ve_type =~ /vertex/i);
+			$elabel{$last_ve_label} = $inherit if ($last_ve_type =~ /edge/i);
+		}
+	}
+}
+
+sub _create_label_st {
+	my $inherit_st;
+	foreach my $key (keys %vlabel) {
+		my $val = $vlabel{$key};
+		if ($val eq "") {
+			$label_st .= "CREATE VLABEL $key;\n";
+		} else {
+			$inherit_st .= "CREATE VLABEL $key INHERITS ($val);\n";
+		}
+	}
+	foreach my $key (keys %elabel) {
+		my $val = $elabel{$key};
+		if ($val eq "") {
+			$label_st .= "CREATE ELABEL $key;\n";
+		} else {
+			$inherit_st .= "CREATE ELABEL $key INHERITS ($val);\n";
+		}
+	}
+	$label_st .= $inherit_st;
 }
 
 sub _get_unique_constraints {
 	my $ls = shift;
 	if ($ls =~ /(Vertex|Edge) +label "(\S+)"\s*$/i) {
-		$last_label = $2;
-		$last_label =~ s/(.+)\.(.+)/$2/;
+		$last_uc_label = $2;
+		$last_uc_label =~ s/(.+)\.(.+)/$2/;
 		return;
 	}
 	if ($ls =~ / UNIQUE +USING +btree +\((\S+)\)\s*$/i) {
 		my $key = $1;
 		$idx_uniq_st .= "CREATE CONSTRAINT ON ";
 		if ($compt eq "agens") {
-			$idx_uniq_st .= "$last_label ASSERT $key IS UNIQUE;\n";
+			$idx_uniq_st .= "$last_uc_label ASSERT $key IS UNIQUE;\n";
 		} else {
-			$idx_uniq_st .= "(u1:$last_label) ASSERT u1.$key IS UNIQUE;\n";
+			$idx_uniq_st .= "(u1:$last_uc_label) ASSERT u1.$key IS UNIQUE;\n";
 		}
 	}
 	return;
@@ -190,7 +248,11 @@ sub main {
 		_get_unique_constraints($ls) unless ($no_unique_constraint);
 		_get_labels($ls, $graph_name) if ($compt eq "agens");
 	}
-	print $label_st;
+
+	if ($compt eq "agens") {
+		_create_label_st();
+		print $label_st;
+	}
 
 	$st = "SET GRAPH_PATH=$graph_name; MATCH (n) RETURN n; MATCH ()-[r]->() RETURN r; \\echo THE_END;";
 	print $in $st . "\n";
