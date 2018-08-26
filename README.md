@@ -87,9 +87,16 @@ MATCH (n1:person {name: "Bill"}), (n2:ssn {number: 523252364}) CREATE (n1)-[:has
 
 ## TECHNIAL DETAILS
 * '--graph=GRAPH_NAME' option must be specified because the graph repository needs to be recognized.
-* VLABEL without vertexes and ELABEL without edges will be also exported if the compatibility mode is set to agens.
-* Inheritance will be preserved if the compatibility is set to agens.
-* Both indexes and unique constraints will be preserved.
+* Exported items are as below:
+
+| Items | compt=agens | compt=neo4j | Note |
+| ------------- | ------------- | ------------- | ------------- |
+| Vertex/Edge | Supported | Supported |  |
+| Inheritance | Supported | Unsupported | Neo4j does not support inheritance |
+| Indexes | Supported | Supported | |
+| Unique constraints | Supported | Supported | |
+| VLABEL without vertexes | Supported | Unsupported | Neo4j does not have "CREATE/DROP VLABEL" command |
+| ELABEL without edges | Supported | Unsupported | Neo4j does not have "CREATE/DROP ELABEL" command |
 
 ### USAGE
 ```
